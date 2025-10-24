@@ -219,14 +219,25 @@ spec:
       - name: disk
         emptyDir: {}
       {{- end }}
-      {{- if .Values.queryNode.persistence.enabled }}
+      {{- if and .Values.queryNode.persistence.enabled .Values.queryNode.persistence.ephemeral }}
+      - name: {{ include "milvus.querynode.fullname" . }}-pvc
+        ephemeral:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              storageClassName: {{ .Values.queryNode.persistence.storageClass | default "standard" }}
+              resources:
+                requests:
+                  storage: {{ .Values.queryNode.persistence.size }}
+      {{- else if .Values.queryNode.persistence.enabled }}
       - name: {{ include "milvus.querynode.fullname" . }}-pvc
         claimName: {{ include "milvus.querynode.fullname" . }}-pvc
       {{- end }}
       {{- if .Values.volumes }}
         {{- toYaml .Values.volumes | nindent 6 }}
       {{- end}}
-  {{- if .Values.queryNode.persistence.enabled }}
+  {{- if and .Values.queryNode.persistence.enabled (not .Values.queryNode.persistence.ephemeral) }}
   volumeClaimTemplates:
     - metadata:
         name: {{ include "milvus.querynode.fullname" . }}-pvc

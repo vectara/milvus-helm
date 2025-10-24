@@ -413,6 +413,12 @@ queryNode:
   annotations: {}
   persistence:
     enabled: false
+    # If true, use ephemeral volumes (PVC lifecycle managed by pods)
+    # If false, use volumeClaimTemplates (PVC lifecycle managed by StatefulSet)
+    # Note: ephemeral volumes require Kubernetes 1.23+
+    ephemeral: true
+    # storageClass: "standard"  # Optional: override default storage class
+    # size: 10Gi  # Required when enabled: true
   hpa:
     enabled: false
     minReplicas: 1
