@@ -702,8 +702,8 @@ etcd:
   pdb:
     create: false
   image:
-    repository: "milvusdb/etcd"
-    tag: "3.5.18-r1"
+    repository: "cgr.dev/vectara.com/etcd-iamguarded"
+    tag: "latest"
     pullPolicy: IfNotPresent
 
   service:
