@@ -306,3 +306,45 @@ Precedence:
     claimName: {{ $pvc.existingClaim | default (printf "%s" (include "milvus.fullname" . | trunc 58)) }}
 {{- end }}
 {{- end -}}
+
+{{/*
+milvus.querynodeDataVolume renders the pod volume entry for the cluster
+querynode on-disk segment cache (/var/lib/milvus/data, requires
+queryNode.disk.enabled). querynode runs as a Deployment, so a per-pod generic
+ephemeral volume is the right way to give each replica its own disk-backed PVC.
+Precedence:
+  1. persistence disabled -> emptyDir (preserves existing behavior).
+  2. existingClaim set    -> reference that PVC.
+  3. ephemeral: true      -> generic ephemeral volume (inline PVC bound to the
+     pod lifecycle, K8s >= 1.21).
+  4. default              -> named PersistentVolumeClaim.
+*/}}
+{{- define "milvus.querynodeDataVolume" -}}
+{{- $pvc := .Values.queryNode.persistence.persistentVolumeClaim -}}
+- name: disk
+{{- if not .Values.queryNode.persistence.enabled }}
+  emptyDir: {}
+{{- else if and $pvc.ephemeral (not $pvc.existingClaim) }}
+  ephemeral:
+    volumeClaimTemplate:
+      metadata:
+        labels:
+          {{- include "milvus.matchLabels" . | nindent 10 }}
+      spec:
+        accessModes:
+          - {{ $pvc.accessModes | quote }}
+        {{- if $pvc.storageClass }}
+        {{- if eq "-" $pvc.storageClass }}
+        storageClassName: ""
+        {{- else }}
+        storageClassName: {{ $pvc.storageClass }}
+        {{- end }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $pvc.size }}
+{{- else }}
+  persistentVolumeClaim:
+    claimName: {{ $pvc.existingClaim | default (printf "%s-querynode" (include "milvus.fullname" . | trunc 48)) }}
+{{- end }}
+{{- end -}}

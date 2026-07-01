@@ -426,7 +426,24 @@ queryNode:
   strategy: {}
   annotations: {}
   persistence:
+    ## Backing store for the querynode on-disk segment cache
+    ## (/var/lib/milvus/data; requires queryNode.disk.enabled). When disabled, an
+    ## emptyDir on node ephemeral storage is used (existing behavior). querynode
+    ## runs as a Deployment, so a generic ephemeral volume (per-pod inline PVC)
+    ## is the right way to give each replica its own disk-backed cache.
     enabled: false
+    persistentVolumeClaim:
+      existingClaim: ""
+      ## If true, use a generic ephemeral volume (inline PVC bound to the pod
+      ## lifecycle) instead of a named PVC. K8s >= 1.21. It's a cache, so there's
+      ## nothing to persist — the PVC is created and deleted with the pod.
+      ## Ignored when existingClaim is set (existingClaim wins).
+      ephemeral: false
+      ## If "-", storageClassName: "" (disables dynamic provisioning). If unset,
+      ## the default provisioner is used.
+      storageClass:
+      accessModes: ReadWriteOnce
+      size: 50Gi
   hpa:
     enabled: false
     minReplicas: 1
