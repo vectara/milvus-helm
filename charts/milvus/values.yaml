@@ -11,7 +11,7 @@ cluster:
 image:
   all:
     repository: milvusdb/milvus
-    tag: v2.6.1
+    tag: v2.6.22
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
@@ -701,8 +701,9 @@ etcd:
   pdb:
     create: false
   image:
-    repository: "milvusdb/etcd"
-    tag: "3.5.18-r1"
+    registry: ""
+    repository: "cgr.dev/vectara.com/etcd-iamguarded"
+    tag: "latest"
     pullPolicy: IfNotPresent
 
   service:
