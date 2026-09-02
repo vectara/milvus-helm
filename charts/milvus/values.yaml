@@ -586,6 +586,8 @@ mixCoordinator:
     clusterIP: ""
 
 streamingNode:
+  pdb:
+    minAvailable: 1
   replicas: 1
   resources: {}
   nodeSelector: {}
