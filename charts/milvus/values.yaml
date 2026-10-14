@@ -508,6 +508,23 @@ indexNode:
   # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-update-deployment
   strategy: {}
   annotations: {}
+  persistence:
+    ## Backing store for the indexnode build scratch disk
+    ## (/var/lib/milvus/data; requires indexNode.disk.enabled). DiskANN builds
+    ## stage raw vectors, PQ codes and the index here (about 4x the raw vectors
+    ## of one segment). When disabled, an emptyDir on node ephemeral storage is
+    ## used (existing behavior).
+    enabled: false
+    persistentVolumeClaim:
+      existingClaim: ""
+      ## If true, use a generic ephemeral volume (inline PVC bound to the pod
+      ## lifecycle) instead of a named PVC. Ignored when existingClaim is set.
+      ephemeral: false
+      ## If "-", storageClassName: "" (disables dynamic provisioning). If unset,
+      ## the default provisioner is used.
+      storageClass:
+      accessModes: ReadWriteOnce
+      size: 16Gi
   hpa:
     enabled: false
     minReplicas: 1
