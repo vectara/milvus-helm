@@ -294,3 +294,38 @@ Precedence:
     claimName: {{ $pvc.existingClaim | default (printf "%s-querynode" (include "milvus.fullname" . | trunc 48)) }}
 {{- end }}
 {{- end -}}
+
+{{/*
+milvus.datanodeDataVolume renders the pod volume entry for the datanode
+build scratch disk (/var/lib/milvus/data, requires dataNode.disk.enabled).
+Same precedence as milvus.querynodeDataVolume.
+*/}}
+{{- define "milvus.datanodeDataVolume" -}}
+{{- $pvc := .Values.dataNode.persistence.persistentVolumeClaim -}}
+- name: disk
+{{- if not .Values.dataNode.persistence.enabled }}
+  emptyDir: {}
+{{- else if and $pvc.ephemeral (not $pvc.existingClaim) }}
+  ephemeral:
+    volumeClaimTemplate:
+      metadata:
+        labels:
+          {{- include "milvus.matchLabels" . | nindent 10 }}
+      spec:
+        accessModes:
+          - {{ $pvc.accessModes | quote }}
+        {{- if $pvc.storageClass }}
+        {{- if eq "-" $pvc.storageClass }}
+        storageClassName: ""
+        {{- else }}
+        storageClassName: {{ $pvc.storageClass }}
+        {{- end }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $pvc.size }}
+{{- else }}
+  persistentVolumeClaim:
+    claimName: {{ $pvc.existingClaim | default (printf "%s-datanode" (include "milvus.fullname" . | trunc 48)) }}
+{{- end }}
+{{- end -}}

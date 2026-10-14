@@ -549,6 +549,25 @@ dataNode:
   # Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-update-deployment
   strategy: {}
   annotations: {}
+  disk:
+    ## Mount a scratch disk at /var/lib/milvus/data (localStorage.path). 2.6
+    ## runs index and stats builds on the datanode and stages their files
+    ## there; DiskANN needs about 4x the raw vectors of one segment per build.
+    enabled: false
+  persistence:
+    ## Backing store for dataNode.disk. When disabled, an emptyDir on node
+    ## ephemeral storage is used.
+    enabled: false
+    persistentVolumeClaim:
+      existingClaim: ""
+      ## If true, use a generic ephemeral volume (inline PVC bound to the pod
+      ## lifecycle) instead of a named PVC. Ignored when existingClaim is set.
+      ephemeral: false
+      ## If "-", storageClassName: "" (disables dynamic provisioning). If unset,
+      ## the default provisioner is used.
+      storageClass:
+      accessModes: ReadWriteOnce
+      size: 16Gi
   hpa:
     enabled: false
     minReplicas: 1
